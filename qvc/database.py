@@ -1,11 +1,11 @@
 import sqlite3
 import os
 
-DB_PATH = os.path.join(".qvcs", "commits.db")
+DB_PATH = os.path.join(".qvc", "commits.db")
 
 
 def create_db():
-    os.makedirs(".qvcs", exist_ok=True)
+    os.makedirs(".qvc", exist_ok=True)
 
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()

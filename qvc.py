@@ -1,8 +1,8 @@
 import sys
-from qvcs import init, commit
+from qvc import init, commit
 
 if len(sys.argv) < 2:
-    print("Usage: python qvcs.py <command>")
+    print("Usage: python qvc.py <command>")
     exit()
 
 cmd = sys.argv[1]

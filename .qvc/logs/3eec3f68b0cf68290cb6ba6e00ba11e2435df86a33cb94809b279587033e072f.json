@@ -1,0 +1,48 @@
+{
+    "circuit_json": [
+        {
+            "gate": "h",
+            "qubits": [
+                0
+            ],
+            "clbits": [],
+            "params": []
+        },
+        {
+            "gate": "cx",
+            "qubits": [
+                1,
+                0
+            ],
+            "clbits": [],
+            "params": []
+        }
+    ],
+    "parameters": {},
+    "statevector": [
+        {
+            "real": 0.7071067811865475,
+            "imag": 0.0
+        },
+        {
+            "real": 0.7071067811865475,
+            "imag": 0.0
+        },
+        {
+            "real": 0.0,
+            "imag": 0.0
+        },
+        {
+            "real": 0.0,
+            "imag": 0.0
+        }
+    ],
+    "metadata": {
+        "num_qubits": 2,
+        "num_clbits": 0,
+        "depth": 2,
+        "size": 2,
+        "global_phase": 0.0
+    },
+    "timestamp": "2026-02-26T01:10:30.954852+05:30"
+}
