@@ -99,7 +99,7 @@ if __name__ == "__main__":
     target = sys.argv[1]
 
     if target == ".":
-        target = "Test_code1.py"  # default file name
+        target = "Test_code2.py"  # default file name
 
     qc = load_circuit_from_file(target)
 
