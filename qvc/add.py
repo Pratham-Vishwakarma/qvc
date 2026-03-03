@@ -5,9 +5,10 @@ import importlib.util
 from datetime import datetime, UTC
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Statevector
+from .database import insert_stage
 
-
-def extract_snapshot(circuit: QuantumCircuit):
+# Generate the compiled data of gates.
+def generate(circuit: QuantumCircuit):
 
     # 1. Convert gate list
     gate_list = []
@@ -44,40 +45,38 @@ def extract_snapshot(circuit: QuantumCircuit):
         statevector_list = str(e)
 
     # 4. Metadata
-    metadata = {
+    metadata = [{
         "num_qubits": circuit.num_qubits,
         "num_clbits": circuit.num_clbits,
         "depth": circuit.depth(),
         "size": circuit.size(),
         "global_phase": float(circuit.global_phase)
-    }
+    }]
 
     # Integration of above components
-    snapshot = {
+    file_data = {
         "circuit_json": gate_list,
         "parameters": parameters,
         "statevector": statevector_list,
-        "metadata": metadata,
-        "timestamp": datetime.now().astimezone().isoformat()
+        "metadata": metadata
     }
 
-    return snapshot
+    return file_data
 
-# -------------------------------------------------
-# Snapshot Storage
-# -------------------------------------------------
+# Add the data to the staging area.
+def stage(file_data: dict):
 
-def store_snapshot(snapshot: dict):
+    file_data_str = json.dumps(file_data, sort_keys=True)
+    stage_hash = hashlib.sha256(file_data_str.encode()).hexdigest()
+    insert_stage({
+        "id": stage_hash,
+        "timestamp": datetime.now().astimezone().isoformat(),
+        "file_data": file_data
+    })
 
-    snapshot_str = json.dumps(snapshot, sort_keys=True)
-    snapshot_hash = hashlib.sha256(snapshot_str.encode()).hexdigest()
-    os.makedirs(".qvc/logs", exist_ok=True)
-    file_path = f".qvc/logs/{snapshot_hash}.json"
-    with open(file_path, "w") as f:
-        json.dump(snapshot, f, indent=4)
+    return
 
-    return snapshot_hash, file_path
-
+# Load the ciruit from the given file.
 def load_circuit_from_file(filepath):
 
     spec = importlib.util.spec_from_file_location("circuit_module", filepath)
@@ -90,22 +89,3 @@ def load_circuit_from_file(filepath):
             return attr
 
     raise ValueError("No QuantumCircuit object found in file.")
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python qvc\\add.py <file.py>")
-        sys.exit(1)
-
-    target = sys.argv[1]
-
-    if target == ".":
-        target = "Test_code2.py"  # default file name
-
-    qc = load_circuit_from_file(target)
-
-    snapshot = extract_snapshot(qc)
-    snapshot_id, path = store_snapshot(snapshot)
-
-    print("Snapshot stored successfully!")
-    print("Snapshot ID:", snapshot_id)
-    print("Location:", path)

@@ -1,5 +1,3 @@
-from .database import create_db
-
-def run():
-    create_db()
-    print("Initialized empty quantum repository in .qvc/")
+from .init import initialize
+from .add import generate, stage, load_circuit_from_file
+from .commit import commits

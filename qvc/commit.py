@@ -1,25 +1,34 @@
-import uuid
+import hashlib
+import json
 from datetime import datetime
-from .database import create_db, insert_commit, get_last_commit
+from .database import insert_commit, get_last_commit, get_staged_data
 
-def run(message):
+def commits(message):
 
-    create_db()  # ensure repo exists
+    stage_data = get_staged_data()
 
-    commit_id = str(uuid.uuid4())
-    parent = get_last_commit()
+    print(stage_data)
+    
+    for i in stage_data:
+        commit_data_str = {
+            "circuit_json": json.loads(i[2]),
+            "parameters": json.loads(i[3]),
+            "statevector": json.loads(i[4]),
+            "metadata": json.loads(i[5]),
+            "message": message
+        }
 
-    data = {
-        "id": commit_id,
-        "timestamp": datetime.now().isoformat(),
-        "message": message,
-        "circuit_json": "placeholder",
-        "parameters": "none",
-        "statevector": "none",
-        "metadata": "test",
-        "parent_id": parent
-    }
+        parent = get_last_commit()
+        commit_string = json.dumps(commit_data_str, sort_keys=True)
+        commit_id = hashlib.sha256(commit_string.encode()).hexdigest()
 
-    insert_commit(data)
+        data = {
+            "id": commit_id,
+            "timestamp": datetime.now().astimezone().isoformat(),
+            "parent_id": parent,
+            "commit_data": commit_data_str
+        }
 
-    print("Committed:", commit_id)
+        insert_commit(data)
+
+        print("Committed:", commit_id)
