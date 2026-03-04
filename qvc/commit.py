@@ -6,8 +6,6 @@ from .database import insert_commit, get_last_commit, get_staged_data
 def commits(message):
 
     stage_data = get_staged_data()
-
-    print(stage_data)
     
     for i in stage_data:
         commit_data_str = {
