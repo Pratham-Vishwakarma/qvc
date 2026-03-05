@@ -1,0 +1,16 @@
+[
+    {
+        "gate": "h", 
+        "qubits": [0], 
+        "clbits": [], 
+        "params": [],
+        "depth": 1
+    }, 
+    {
+        "gate": "cx", 
+        "qubits": [1, 0], 
+        "clbits": [], 
+        "params": [],
+        "depth": 2
+    }
+]

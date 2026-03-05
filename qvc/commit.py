@@ -1,7 +1,7 @@
 import hashlib
 import json
 from datetime import datetime
-from .database import insert_commit, get_last_commit, get_staged_data
+from .database import insert_commit, get_last_commit, get_staged_data, clear_stage
 
 def commits(message):
 
@@ -32,3 +32,5 @@ def commits(message):
         insert_commit(data)
 
         print("Committed:", commit_id)
+    
+    clear_stage()

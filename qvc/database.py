@@ -98,3 +98,23 @@ def insert_commit(data):
 
     conn.commit()
     conn.close()
+
+def clear_stage():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM stage")
+
+    conn.commit()
+    conn.close()
+
+def get_last_two_commits():
+    conn = conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM COMMITS ORDER BY timestamp DESC LIMIT 2")
+    row = cur.fetchall()
+
+    cur.close()
+
+    return row
