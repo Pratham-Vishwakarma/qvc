@@ -1,6 +1,6 @@
 def main():
     import sys
-    from qvc import init, add, commit
+    from qvc import init, add, commit, diff_text
 
     if len(sys.argv) < 2:
         print("Usage: python qvc.py <command>")
@@ -34,6 +34,18 @@ def main():
         else:
             message = sys.argv[2]
             commit.commits(message)
+    
+    elif cmd == "diff":
+        if len(sys.argv) < 3:
+            print("Usage: python qvc.py diff <summary|detailed>")
+        else:
+            mode = sys.argv[2]
+            if mode == "summary" or mode == ".":
+                print(diff_text.summary_diff())
+            elif mode == "detailed":
+                print(diff_text.detailed_diff())
+            else:
+                print("Unknown diff mode")
 
     else:
         print("Unknown command")

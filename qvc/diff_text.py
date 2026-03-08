@@ -1,29 +1,49 @@
 import json
 import difflib
+from .database import get_last_two_commits
 
-def load_json(path):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+def load_data(data, metadata):
+    result = []
 
+    if metadata:
+        md = metadata[0]
+        if md.get("num_qubits") is not None:
+            nq=f"num_qb:{md['num_qubits']}"
+        if md.get("num_clbits") is not None:
+            nc=f"num_cb:{md['num_clbits']}"    
+        if md.get("depth") is not None:
+            d=f"d:{md['depth']}"
+        if md.get("size") is not None:
+            s=f"s:{md['size']}"
+        if md.get("global_phase") is not None:
+            gbl_phs=f"gbl_phs:{md['global_phase']}"
+        if md:
+            result.append(f"{nq} {nc} {d} {s} {gbl_phs}")
+        result.append("")
+    
+    for g in data:
+        gate = g["gate"]
+        qubits = ", ".join(f"q[{q}]" for q in g["qubits"])
+        params = ", ".join(map(str, g["params"]))
 
-def stringify_gates(gates):
-    """
-    Convert gate JSON objects into stable strings
-    so difflib can compare them.
-    """
-    return [json.dumps(g, sort_keys=True) for g in gates]
+        if params:
+            result.append(f"{gate}({params}) {qubits}")
+        else:
+            result.append(f"{gate} {qubits}")
 
+    return result
 
-def detailed_diff(file_a, file_b):
+def detailed_diff():
 
-    data_a = load_json(file_a)
-    data_b = load_json(file_b)
+    file_a, file_b = get_last_two_commits()
 
-    # gates_a = stringify_gates(data_a.get("gates", []))
-    # gates_b = stringify_gates(data_b.get("gates", []))
-
-    gates_a = stringify_gates([item["gate"] for item in data_a])
-    gates_b = stringify_gates([item["gate"] for item in data_b])
+    data_a = json.loads(file_a[3])
+    metadata_a = json.loads(file_a[6])
+    data_b = json.loads(file_b[3])
+    metadata_b = json.loads(file_b[6])
+    
+    gates_a = load_data(data_a, metadata_a)
+    gates_b = load_data(data_b, metadata_b)
 
     diff = difflib.unified_diff(
         gates_a,
@@ -35,17 +55,17 @@ def detailed_diff(file_a, file_b):
 
     return "\n".join(diff)
 
+def summary_diff():
 
-def summary_diff(file_a, file_b):
+    file_a, file_b = get_last_two_commits()
 
-    data_a = load_json(file_a)
-    data_b = load_json(file_b)
+    data_a = json.loads(file_a[3])
+    metadata_a = json.loads(file_a[6])
+    data_b = json.loads(file_b[3])
+    metadata_b = json.loads(file_b[6])
 
-    # gates_a = stringify_gates(data_a.get("gates", []))
-    # gates_b = stringify_gates(data_b.get("gates", []))
-
-    gates_a = stringify_gates([item["gate"] for item in data_a])
-    gates_b = stringify_gates([item["gate"] for item in data_b])
+    gates_a = [item["gate"] for item in data_a]
+    gates_b = [item["gate"] for item in data_b]
 
     added = 0
     removed = 0
@@ -70,20 +90,14 @@ def summary_diff(file_a, file_b):
             elif (i2 - i1) > (j2 - j1):
                 removed += (i2 - i1) - (j2 - j1)
 
-    # depth_a = data_a.get("depth", 0)
-    # depth_b = data_b.get("depth", 0)
-
-    depth_a = max([item["depth"] for item in data_a])
-    depth_b = max([item["depth"] for item in data_b])
+    depth_a = metadata_a[0]["depth"] if metadata_a else "N/A"
+    depth_b = metadata_b[0]["depth"] if metadata_b else "N/A"
 
     summary = f"""
-============================
-TEXT DIFF SUMMARY
-============================
+Total Gate Count: {len(gates_a)} → {len(gates_b)}
 Gates Added: {added}
 Gates Removed: {removed}
 Gates Modified: {modified}
-Total Gate Count: {len(gates_a)} → {len(gates_b)}
 Circuit Depth: {depth_a} → {depth_b}
 """
 

@@ -115,6 +115,6 @@ def get_last_two_commits():
     cur.execute("SELECT * FROM COMMITS ORDER BY timestamp DESC LIMIT 2")
     row = cur.fetchall()
 
-    cur.close()
+    conn.close()
 
     return row
