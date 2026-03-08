@@ -2,7 +2,7 @@ import sqlite3
 import os
 import json
 
-DB_PATH = os.path.join(".qvc", "commits.db")
+DB_PATH = os.path.join(".qvc", "qvc.db")
 
 def create_db():
     os.makedirs(".qvc", exist_ok=True)
