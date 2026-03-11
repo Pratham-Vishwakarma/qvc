@@ -11,8 +11,9 @@ def commits(message):
         commit_data_str = {
             "circuit_json": json.loads(i[2]),
             "parameters": json.loads(i[3]),
-            "statevector": json.loads(i[4]),
-            "metadata": json.loads(i[5]),
+            "bindings": json.loads(i[4]),
+            "statevector": json.loads(i[5]),
+            "metadata": json.loads(i[6]),
             "message": message
         }
 

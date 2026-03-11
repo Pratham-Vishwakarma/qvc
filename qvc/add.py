@@ -14,14 +14,20 @@ def generate(circuit: QuantumCircuit):
     gate_list = []
 
     for operation, qubits, clbits in circuit.data:
+        
+        params = []
+
+        for p in operation.params:
+            try:
+                params.append(float(p))
+            except TypeError:
+                params.append(str(p))
+
         gate_info = {
             "gate": operation.name,
             "qubits": [circuit.find_bit(q).index for q in qubits],
             "clbits": [circuit.find_bit(c).index for c in clbits] if clbits else [],
-            "params": [
-                float(p) if hasattr(p, "__float__") else str(p)
-                for p in operation.params
-            ],
+            "params": params
         }
         gate_list.append(gate_info)
 
@@ -29,20 +35,25 @@ def generate(circuit: QuantumCircuit):
     parameters = {}
 
     for param in circuit.parameters:
-        parameters[str(param)] = None
+        parameters[str(param)] = {
+            "name": param.name,
+            "uuid": str(param.uuid)
+        }
 
-    # 3. Get statevector
-    try:
-        statevector = Statevector.from_instruction(circuit)
-        statevector_list = [
-            {
-                "real": float(amplitude.real),
-                "imag": float(amplitude.imag),
-            }
-            for amplitude in statevector.data
-        ]
-    except Exception as e:
-        statevector_list = str(e)
+    # 3. Extract bindings (bound values + 0 for unbound)
+    bindings = {}
+
+    for operation, _, _ in circuit.data:
+        for p in operation.params:
+
+            # ignore pure numeric constants
+            try:
+                float(p)
+                continue
+            except TypeError:
+                name = str(p)
+                if name not in bindings:
+                    bindings[name] = 0
 
     # 4. Metadata
     metadata = [{
@@ -53,10 +64,30 @@ def generate(circuit: QuantumCircuit):
         "global_phase": float(circuit.global_phase)
     }]
 
+    # 5. Get statevector
+    sim_circuit = circuit.copy()
+
+    if sim_circuit.parameters:
+        zero_bindings = {param: 0 for param in sim_circuit.parameters}
+        sim_circuit = sim_circuit.assign_parameters(zero_bindings)
+
+    try:
+        statevector = Statevector.from_instruction(sim_circuit)
+        statevector_list = [
+            {
+                "real": float(amplitude.real),
+                "imag": float(amplitude.imag),
+            }
+            for amplitude in statevector.data
+        ]
+    except Exception as e:
+        statevector_list = str(e)
+
     # Integration of above components
     file_data = {
         "circuit_json": gate_list,
         "parameters": parameters,
+        "bindings": bindings,
         "statevector": statevector_list,
         "metadata": metadata
     }

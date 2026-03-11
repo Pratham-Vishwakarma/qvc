@@ -1,6 +1,6 @@
 def main():
     import sys
-    from qvc import init, add, commit, diff_text
+    from qvc import init, add, commit, diff_text, diff_param
 
     if len(sys.argv) < 2:
         print("Usage: python qvc.py <command>")
@@ -22,7 +22,7 @@ def main():
         target = sys.argv[2]
 
         if target == ".":
-            target = "Test_code2.py"  # default file name
+            target = "Test_code3.py"  # default file name
 
         qc = add.load_circuit_from_file(target)
         added_file = add.generate(qc)
@@ -36,16 +36,30 @@ def main():
             commit.commits(message)
     
     elif cmd == "diff":
-        if len(sys.argv) < 3:
-            print("Usage: python qvc.py diff <summary|detailed>")
+        if len(sys.argv) < 4:
+            print("Usage: python qvc.py diff <text|param> <summary|detailed>")
         else:
-            mode = sys.argv[2]
-            if mode == "summary" or mode == ".":
-                print(diff_text.summary_diff())
-            elif mode == "detailed":
-                print(diff_text.detailed_diff())
+            diff_type = sys.argv[2]
+            mode = sys.argv[3]
+
+            if diff_type == "text":
+                if mode == "summary" or mode == ".":
+                    print(diff_text.summary_diff())
+                elif mode == "detailed":
+                    print(diff_text.detailed_diff())
+                else:
+                    print("Unknown diff mode")
+
+            elif diff_type == "param":
+                if mode == "summary" or mode == ".":
+                    print(diff_param.summary_param_diff())
+                elif mode == "detailed":
+                    print(diff_param.detailed_param_diff())
+                else:
+                    print("Unknown diff mode")
+
             else:
-                print("Unknown diff mode")
+                print("Unknown diff type")
 
     else:
         print("Unknown command")

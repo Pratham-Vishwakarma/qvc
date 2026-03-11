@@ -17,6 +17,7 @@ def create_db():
         parent_id TEXT,
         circuit_json TEXT,
         parameters TEXT,
+        bindings TEXT,
         statevector TEXT,
         metadata TEXT,
         message TEXT
@@ -29,6 +30,7 @@ def create_db():
         timestamp TEXT,
         circuit_json TEXT,
         parameters TEXT,
+        bindings TEXT,
         statevector TEXT,
         metadata TEXT
     )
@@ -46,12 +48,13 @@ def insert_stage(data):
 
     if not row or data["id"] != row[0]:
         cur.execute("""
-        INSERT INTO stage VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO stage VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             data["id"],
             data["timestamp"],
             json.dumps(data["file_data"]["circuit_json"]),
             json.dumps(data["file_data"]["parameters"]),
+            json.dumps(data["file_data"]["bindings"]),
             json.dumps(data["file_data"]["statevector"]),
             json.dumps(data["file_data"]["metadata"])
         ))
@@ -84,13 +87,14 @@ def insert_commit(data):
     cur = conn.cursor()
 
     cur.execute("""
-    INSERT INTO commits VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO commits VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         data["id"],
         data["timestamp"],
         data["parent_id"],
         json.dumps(data["commit_data"]["circuit_json"]),
         json.dumps(data["commit_data"]["parameters"]),
+        json.dumps(data["commit_data"]["bindings"]),
         json.dumps(data["commit_data"]["statevector"]),
         json.dumps(data["commit_data"]["metadata"]),
         json.dumps(data["commit_data"]["message"])

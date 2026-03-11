@@ -38,16 +38,16 @@ def detailed_diff():
     file_a, file_b = get_last_two_commits()
 
     data_a = json.loads(file_a[3])
-    metadata_a = json.loads(file_a[6])
+    metadata_a = json.loads(file_a[7])
     data_b = json.loads(file_b[3])
-    metadata_b = json.loads(file_b[6])
+    metadata_b = json.loads(file_b[7])
     
     gates_a = load_data(data_a, metadata_a)
     gates_b = load_data(data_b, metadata_b)
 
     diff = difflib.unified_diff(
-        gates_a,
         gates_b,
+        gates_a,
         fromfile="Commit A",
         tofile="Commit B",
         lineterm=""
@@ -60,9 +60,9 @@ def summary_diff():
     file_a, file_b = get_last_two_commits()
 
     data_a = json.loads(file_a[3])
-    metadata_a = json.loads(file_a[6])
+    metadata_a = json.loads(file_a[7])
     data_b = json.loads(file_b[3])
-    metadata_b = json.loads(file_b[6])
+    metadata_b = json.loads(file_b[7])
 
     gates_a = [item["gate"] for item in data_a]
     gates_b = [item["gate"] for item in data_b]
@@ -71,7 +71,7 @@ def summary_diff():
     removed = 0
     modified = 0
 
-    matcher = difflib.SequenceMatcher(None, gates_a, gates_b)
+    matcher = difflib.SequenceMatcher(None, gates_b, gates_a)
 
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
 
