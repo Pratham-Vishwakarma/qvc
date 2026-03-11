@@ -49,6 +49,32 @@ Param[{i}]:
  Impact: {impact}
 """)
 
+    return "".join(details)
+
+def summary_param_diff(params_a, params_b):
+
+    total_params = max(len(params_a), len(params_b))
+    changed = 0
+    unchanged = 0
+    total_drift = 0
+    max_drift = 0
+
+    for i in range(total_params):
+
+        old = normalize(params_a[i] if i < len(params_a) else 0)
+        new = normalize(params_b[i] if i < len(params_b) else 0)
+
+        if old == new:
+            unchanged += 1
+
+        else:
+            changed += 1
+            delta = new - old
+            drift = abs(delta)
+
+            total_drift += drift
+            max_drift = max(max_drift, drift)
+
     if max_drift < 0.1:
         overall = "Low"
     elif max_drift < 0.5:
@@ -65,9 +91,9 @@ Max Drift: {max_drift:.2f}
 Overall Impact: {overall}
 """
 
-    return summary + "\n" + "\n".join(details)
-
+    return summary.strip()
+    
 params_a = [0.5, None, -0.3]
 params_b = [0.8, 1.2, None]
 
-print(parameter_diff(params_a, params_b))
+# print(summary_param_diff(params_a, params_b))
