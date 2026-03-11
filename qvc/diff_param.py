@@ -1,9 +1,9 @@
-def parameter_diff(params_a, params_b):
+def normalize(value):
+    if value is None:
+        return 0
+    return value
 
-    def normalize(value):
-        if value is None:
-            return 0
-        return value
+def parameter_diff(params_a, params_b):
 
     total_params = max(len(params_a), len(params_b))
     changed = 0
@@ -66,6 +66,7 @@ Overall Impact: {overall}
 """
 
     return summary + "\n" + "\n".join(details)
+
 params_a = [0.5, None, -0.3]
 params_b = [0.8, 1.2, None]
 
