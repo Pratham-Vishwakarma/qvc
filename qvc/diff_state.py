@@ -1,9 +1,7 @@
+import json
 import numpy as np
+from .database import get_last_two_commits
 
-
-# ---------------------------------
-# Convert JSON statevector → complex
-# ---------------------------------
 def convert_statevector(json_state):
 
     complex_state = []
@@ -14,10 +12,6 @@ def convert_statevector(json_state):
 
     return complex_state
 
-
-# ---------------------------------
-# Fidelity
-# ---------------------------------
 def compute_fidelity(state1, state2):
 
     psi1 = np.array(state1, dtype=complex)
@@ -29,10 +23,6 @@ def compute_fidelity(state1, state2):
 
     return fidelity
 
-
-# ---------------------------------
-# Distance
-# ---------------------------------
 def state_distance(state1, state2):
 
     psi1 = np.array(state1, dtype=complex)
@@ -40,10 +30,6 @@ def state_distance(state1, state2):
 
     return np.linalg.norm(psi1 - psi2)
 
-
-# ---------------------------------
-# Impact classification
-# ---------------------------------
 def classify_impact(fidelity):
 
     if fidelity > 0.999:
@@ -58,10 +44,6 @@ def classify_impact(fidelity):
     else:
         return "Major Change"
 
-
-# ---------------------------------
-# Detect amplitude changes
-# ---------------------------------
 def amplitude_changes(state1, state2, threshold=0.01):
 
     changes = []
@@ -88,50 +70,11 @@ def amplitude_changes(state1, state2, threshold=0.01):
 
     return changes
 
+def summary_state_diff():
+    file_a, file_b = get_last_two_commits()
 
-# ---------------------------------
-# Summary output
-# ---------------------------------
-def print_summary(fidelity, distance, impact, changes):
-
-    print("\nSTATE DIFF SUMMARY")
-    print("---------------------")
-
-    print(f"Fidelity: {fidelity:.4f}")
-    print(f"Distance: {distance:.4f}")
-    print(f"Impact: {impact}")
-    print(f"Amplitude Changes: {len(changes)}")
-
-
-# ---------------------------------
-# Detailed output
-# ---------------------------------
-def print_details(fidelity, distance, changes):
-
-    print("\nSTATE DIFF DETAILS")
-    print("---------------------")
-
-    print(f"Exact Fidelity: {fidelity}")
-    print(f"Exact Distance: {distance}")
-
-    print("\nAmplitude Changes:")
-
-    if not changes:
-        print("No significant amplitude changes")
-
-    for c in changes:
-        print(
-            f"{c['basis']} : {c['old']} → {c['new']} (Δ {c['delta']:.4f})"
-        )
-
-
-# ---------------------------------
-# Main state diff function
-# ---------------------------------
-def state_diff(json_state1, json_state2):
-
-    state1 = convert_statevector(json_state1)
-    state2 = convert_statevector(json_state2)
+    state1 = convert_statevector(json.loads(file_a[6]))
+    state2 = convert_statevector(json.loads(file_b[6]))
 
     if len(state1) != len(state2):
         raise ValueError("Statevectors must have same dimension")
@@ -144,28 +87,48 @@ def state_diff(json_state1, json_state2):
 
     changes = amplitude_changes(state1, state2)
 
-    print_summary(fidelity, distance, impact, changes)
+    summary = f"""
+Fidelity: {fidelity:.4f}
+Distance: {distance:.4f}
+Impact: {impact}
+Number of Amplitude Changes: {len(changes)}
+"""
 
-    print_details(fidelity, distance, changes)
+    return summary.strip()
 
+def detailed_state_diff():
+    details = []
 
-# ---------------------------------
-# Example test
-# ---------------------------------
-if __name__ == "__main__":
+    file_a, file_b = get_last_two_commits()
 
-    stateA = [
-        {"real": 0.548218300414465, "imag": -0.20011530103878566},
-        {"real": 0.5625214131757257, "imag": -0.2539159377017891},
-        {"real": 0.3750563183200591, "imag": 0.13690624335301174},
-        {"real": 0.34093998328541997, "imag": 0.0534442148145433}
-    ]
+    state1 = convert_statevector(json.loads(file_a[6]))
+    state2 = convert_statevector(json.loads(file_b[6]))
 
-    stateB = [
-        {"real": 0.5418218300414465, "imag": -0.50011530103878566},
-        {"real": 0.6625214131758257, "imag": -0.8539159377017891},
-        {"real": 0.9750563183200561, "imag": 0.13690624935301174},
-        {"real": 0.34093998328541995, "imag": 0.7534442148145433}
-    ]
+    if len(state1) != len(state2):
+        raise ValueError("Statevectors must have same dimension")
 
-    state_diff(stateA, stateB)
+    fidelity = compute_fidelity(state1, state2)
+
+    distance = state_distance(state1, state2)
+
+    impact = classify_impact(fidelity)
+
+    changes = amplitude_changes(state1, state2)
+
+    details.append(f"""
+Exact Fidelity: {fidelity}
+Exact Distance: {distance}
+Impact: {impact}
+Amplitude Changes:
+""")
+
+    if not changes:
+        details.append(f"""
+No significant amplitude changes
+""")
+
+    for c in changes:
+        details.append(f"""
+{c['basis']} : {c['old']} → {c['new']} (Δ {c['delta']:.4f})""")
+
+    return "\n".join(details)
