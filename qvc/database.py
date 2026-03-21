@@ -46,11 +46,11 @@ def insert_stage(data):
     cur.execute("SELECT stage_id FROM stage ORDER BY timestamp DESC LIMIT 1")
     row = cur.fetchone()
 
-    if not row or data["id"] != row[0]:
+    if not row or data["stage_id"] != row[0]:
         cur.execute("""
         INSERT INTO stage VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
-            data["id"],
+            data["stage_id"],
             data["timestamp"],
             json.dumps(data["file_data"]["circuit_json"]),
             json.dumps(data["file_data"]["parameters"]),
@@ -67,6 +67,16 @@ def get_staged_data():
     cur = conn.cursor()
 
     cur.execute("SELECT * FROM stage ORDER BY timestamp DESC")
+    row = cur.fetchall()
+
+    conn.close()
+    return row
+
+def get_commited_data():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM commits ORDER BY timestamp DESC")
     row = cur.fetchall()
 
     conn.close()
@@ -136,6 +146,37 @@ def remove_from_stage(limit):
         cur.execute("DELETE FROM stage WHERE stage_id IN (SELECT stage_id FROM stage ORDER BY timestamp DESC LIMIT ?) RETURNING * ", (limit,))
         dels = cur.fetchall()
         
+    conn.commit()
+    conn.close()
+    return row, dels
+
+def restore_from_stage():
+    conn = conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM commits ORDER BY timestamp DESC LIMIT 1")
+    row = cur.fetchone()
+
+    dels = []
+
+    if row:
+        cur.execute("DELETE FROM commits WHERE id IN (SELECT id FROM commits ORDER BY timestamp DESC LIMIT 1) RETURNING * ")
+        dels = cur.fetchone()
+        cur.execute("SELECT stage_id FROM stage ORDER BY timestamp DESC LIMIT 1")
+        stg = cur.fetchone()
+        if not stg or dels[0] != stg[0]:
+            cur.execute("""
+            INSERT INTO stage VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                dels[0],
+                dels[1],
+                dels[3],
+                dels[4],
+                dels[5],
+                dels[6],
+                dels[7]
+            ))
+
     conn.commit()
     conn.close()
     return row, dels

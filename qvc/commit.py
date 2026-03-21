@@ -1,10 +1,24 @@
 import hashlib
 import json
+import copy
 from datetime import datetime
 from .database import insert_commit, get_last_commit, get_staged_data, clear_stage
 
-def commits(message):
+def prepare_hash_data(file_data):
+    data = {
+        "circuit_json": file_data["circuit_json"],
+        "parameters": {
+            k: {"name": v["name"]}
+            for k, v in file_data["parameters"].items()
+        },
+        "bindings": file_data["bindings"],
+        "statevector": file_data["statevector"],
+        "metadata": file_data["metadata"],
+        "message": file_data["message"]
+    }
+    return data
 
+def commits(message):
     stage_data = get_staged_data()
     
     for i in stage_data:
@@ -18,7 +32,8 @@ def commits(message):
         }
 
         parent = get_last_commit()
-        commit_string = json.dumps(commit_data_str, sort_keys=True)
+        hash_commit_data = prepare_hash_data(commit_data_str)
+        commit_string = json.dumps(hash_commit_data, sort_keys=True)
         commit_id = hashlib.sha256(commit_string.encode()).hexdigest()
 
         data = {

@@ -120,7 +120,7 @@ def stage(file_data: dict):
             return
 
     insert_stage({
-        "id": stage_hash,
+        "stage_id": stage_hash,
         "timestamp": datetime.now().astimezone().isoformat(),
         "file_data": file_data
     })

@@ -29,5 +29,5 @@ qc.crx(delta, 0, 1)
 qc = qc.assign_parameters({
     theta: 0.7,
     alpha: 1.2,
-    delta: 0.3
+    delta: 1.5
 })

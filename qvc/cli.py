@@ -1,6 +1,6 @@
 def main():
     import sys
-    from qvc import init, add, commit, diff_text, diff_param, diff_state, remove_entry, status
+    from qvc import init, add, commit, diff_text, diff_param, diff_state, remove_entry, status, restore
 
     if len(sys.argv) < 2:
         print("Usage: qvc <command>")
@@ -30,21 +30,34 @@ def main():
     
     elif cmd == "remove":
         if len(sys.argv) < 3:
-            print("Usage: qvc add <limit>")
+            print("Usage: qvc remove <limit>")
         else:
             limit = int(sys.argv[2])
             remove_entry(limit)
     
     elif cmd == "status":
-        if len(sys.argv) < 3:
-            print("Usage: qvc add <limit>")
+        if len(sys.argv) < 4:
+            print("Usage: qvc status <stage|commit> <summary|detailed>")
         else:
-            mode = sys.argv[2]
+            status_type = sys.argv[2]
+            mode = sys.argv[3]
 
-            if mode == "summary" or mode == ".":
-                status.show_summary_status()
-            if mode == "detailed":
-                status.show_detailed_status()
+            if status_type == "stage":
+                if mode == "summary" or mode == ".":
+                    status.stage_summary_status()
+                elif mode == "detailed":
+                    status.stage_detailed_status()
+                else:
+                    print("Unknown status mode")
+            elif status_type == "commit":
+                if mode == "summary" or mode == ".":
+                    status.commit_summary_status()
+                elif mode == "detailed":
+                    status.commit_detailed_status()
+                else:
+                    print("Unknown status mode")
+            else:
+                print("Unknown status type")
 
     elif cmd == "commit":
         if len(sys.argv) < 3:
@@ -52,6 +65,12 @@ def main():
         else:
             message = sys.argv[2]
             commit.commits(message)
+    
+    elif cmd == "restore":
+        if len(sys.argv) < 2:
+            print("Usage: qvc restore")
+        else:
+            restore.restore_entry()
     
     elif cmd == "diff":
         if len(sys.argv) < 4:
