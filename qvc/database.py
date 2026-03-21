@@ -66,7 +66,7 @@ def get_staged_data():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM stage")
+    cur.execute("SELECT * FROM stage ORDER BY timestamp DESC")
     row = cur.fetchall()
 
     conn.close()
@@ -122,3 +122,20 @@ def get_last_two_commits():
     conn.close()
 
     return row
+
+def remove_from_stage(limit):
+    conn = conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM stage ORDER BY timestamp DESC LIMIT 1")
+    row = cur.fetchone()
+
+    dels = []
+
+    if row:
+        cur.execute("DELETE FROM stage WHERE stage_id IN (SELECT stage_id FROM stage ORDER BY timestamp DESC LIMIT ?) RETURNING * ", (limit,))
+        dels = cur.fetchall()
+        
+    conn.commit()
+    conn.close()
+    return row, dels

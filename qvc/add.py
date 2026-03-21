@@ -1,11 +1,12 @@
 import os, sys
+import copy
 import json
 import hashlib
 import importlib.util
 from datetime import datetime, UTC
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Statevector
-from .database import insert_stage
+from .database import insert_stage, get_staged_data
 
 # Generate the compiled data of gates.
 def generate(circuit: QuantumCircuit):
@@ -94,11 +95,30 @@ def generate(circuit: QuantumCircuit):
 
     return file_data
 
+def prepare_hash_data(file_data):
+    data = copy.deepcopy(file_data)
+
+    # remove UUIDs from parameters
+    for p in data["parameters"].values():
+        if "uuid" in p:
+            del p["uuid"]
+
+    return data
+
 # Add the data to the staging area.
 def stage(file_data: dict):
+    hash_file_data = prepare_hash_data(file_data)
 
-    file_data_str = json.dumps(file_data, sort_keys=True)
+    file_data_str = json.dumps(hash_file_data, sort_keys=True)
     stage_hash = hashlib.sha256(file_data_str.encode()).hexdigest()
+    
+    stage_data = get_staged_data()
+
+    for i in range(len(stage_data)):
+        if stage_data is not None and stage_data[i][0] == stage_hash:
+            print("Cannot stage the file, Found data same as previously staged.")
+            return
+
     insert_stage({
         "id": stage_hash,
         "timestamp": datetime.now().astimezone().isoformat(),
